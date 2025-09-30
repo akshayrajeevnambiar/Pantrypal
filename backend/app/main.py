@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from sqlalchemy import text
 from app.core.db import engine
+from app.routers import auth as auth_router
 
 app = FastAPI(title="Pantrypal API", version="0.1.0")
 
@@ -17,3 +18,5 @@ def read_health():
     except Exception as e:
         db_status = f"error: {e}"
     return {"ok": True, "db": db_status}
+
+app.include_router(auth_router.router)

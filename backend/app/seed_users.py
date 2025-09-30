@@ -16,9 +16,9 @@ def seed_users():
 
     # Define seed data (plaintext passwords only here, they’ll be hashed)
     seed_data = [
-        {"email": "admin@pantrypal.local", "name": "Admin User", "role": "admin", "password": "admin123"},
-        {"email": "manager@pantrypal.local", "name": "Manager User", "role": "manager", "password": "manager123"},
-        {"email": "counter@pantrypal.local", "name": "Counter User", "role": "counter", "password": "counter123"},
+        {"email": "admin@pantrypal.dev", "name": "Admin User", "role": "admin", "password": "admin123"},
+        {"email": "manager@pantrypal.dev", "name": "Manager User", "role": "manager", "password": "manager123"},
+        {"email": "counter@pantrypal.dev", "name": "Counter User", "role": "counter", "password": "counter123"},
     ]
 
     for user in seed_data:
