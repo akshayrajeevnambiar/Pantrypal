@@ -6,6 +6,8 @@ from app.security.passwords import verify_password
 from app.security.jwt import create_access_token
 from app.core.orm import SessionLocal
 from app.models.users import User
+from pydantic import BaseModel
+from app.security.deps import get_current_user
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -37,3 +39,17 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)) -> TokenResponse
     token = create_access_token({"sub": str(user.id), "role": user.role, "email": user.email})
 
     return TokenResponse(access_token=token)
+
+class WhoAmI(BaseModel):
+    id: int
+    email: str
+    role: str
+
+@router.get("/whoami", response_model=WhoAmI)
+def whoami(current_user = Depends(get_current_user)) -> WhoAmI:
+    """
+    Simple sanity check: returns the authenticated user's identity.
+    Requires a valid Bearer token.
+    """
+    return WhoAmI(id=current_user.id, email=current_user.email, role=current_user.role)
+
