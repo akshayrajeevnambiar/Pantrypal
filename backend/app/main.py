@@ -1,7 +1,19 @@
 from fastapi import FastAPI
+from sqlalchemy import text
+from app.core.db import engine
 
 app = FastAPI(title="Pantrypal API", version="0.1.0")
 
+@app.get("/", tags=["Root"], include_in_schema=False)
+def root():
+    return {"app": "Pantrypal API", "docs": "/docs", "health": "/health"}
+
 @app.get("/health", tags=["Health"])
 def read_health():
-    return {"ok": True}
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        db_status = "ok"
+    except Exception as e:
+        db_status = f"error: {e}"
+    return {"ok": True, "db": db_status}
