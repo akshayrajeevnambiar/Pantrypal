@@ -1,22 +1,45 @@
-from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import Integer, ForeignKey, DateTime
+# app/models/count.py
+from datetime import datetime, timezone
+from typing import Optional
+from sqlalchemy import ForeignKey, Integer, String, DateTime
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.orm import Base
-from datetime import datetime
 
 class Count(Base):
     __tablename__ = "counts"
 
     id: Mapped[int] = mapped_column(primary_key=True)
 
-    # FK to items.id
-    item_id: Mapped[int] = mapped_column(ForeignKey("items.id"))
+    # What item is being counted
+    item_id: Mapped[int] = mapped_column(ForeignKey("items.id"), nullable=False)
 
-    # Quantity in base units (g, ml, pcs)
-    quantity: Mapped[int] = mapped_column(Integer)
+    # Quantity submitted (in the item's base_unit)
+    count: Mapped[int] = mapped_column(Integer, nullable=False)
 
-    last_updated_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    # Workflow status: "pending" | "approved" | "rejected"
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending")
+
+    # Who submitted the count + when
+    submitted_by: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    submitted_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
     )
 
-    # FK to users.id (who made this count)
-    updated_by: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    # Who approved/rejected + when (nullable until decision)
+    approved_by: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"))
+    approved_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
+
+    # Convenience timestamp for any update
+    last_updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+    # ORM relationships
+    item = relationship("Item", backref="count_rows")
+    submitter = relationship("User", foreign_keys=[submitted_by], backref="submitted_counts")
+    approver = relationship("User", foreign_keys=[approved_by], backref="approved_counts")
