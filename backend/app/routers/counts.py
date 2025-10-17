@@ -54,6 +54,18 @@ def submit_count(
     Accept either a single CountSubmit or a CountBatchSubmit (list of counts).
     Creates one or many 'pending' count rows.
     """
+
+    existing_pending = (
+    db.query(Count)
+    .filter(Count.item_id == item.id, Count.status == "pending")
+    .first()
+    )
+    if existing_pending:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Pending count already exists for item_id={item.id}. Please approve/reject it first."
+        )
+
     payload_list = payload.counts if isinstance(payload, CountBatchSubmit) else [payload]
 
     results: List[CountOut] = []
