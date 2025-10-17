@@ -30,7 +30,7 @@ class ItemOut(BaseModel):
     base_unit: BaseUnit
     par_level: int
     is_active: bool
-    current_count: Optional[int] = None
+    current_qty: int                     # live on-hand quantity
     is_below_par: Optional[bool] = None
 
     class Config:

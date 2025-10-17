@@ -36,6 +36,7 @@ def _count_to_out(row: Count) -> CountOut:
         approved_by_id=row.approved_by,
         approved_by_name=row.approver.name if row.approver else None,
         approved_at=row.approved_at,
+        approved_count=row.approved_count,
     )
 
 
@@ -155,21 +156,23 @@ def approve_count(
     db: Session = Depends(get_db),
     reviewer: User = Depends(get_current_user),
 ) -> CountOut:
-    """
-    Manager/Admin: approve a pending count.
-    """
     row = db.query(Count).get(count_id)
     if not row:
         raise HTTPException(status_code=404, detail="Count not found")
     if row.status != "pending":
         raise HTTPException(status_code=409, detail="Only pending counts can be approved")
 
-    # Ensure the item is still active
-    _item_active_or_404(db, row.item_id)
+    # Ensure the item still exists and is active
+    item = db.query(Item).get(row.item_id)
+    if not item or not item.is_active:
+        raise HTTPException(status_code=404, detail="Item not found or inactive")
 
+    # Snapshot approved value + update item live quantity
     row.status = "approved"
     row.approved_by = reviewer.id
     row.approved_at = datetime.now(timezone.utc)
+    row.approved_count = row.count                     # NEW snapshot
+    item.current_qty = row.count                       # LIVE INVENTORY SYNC
 
     db.commit()
     db.refresh(row)

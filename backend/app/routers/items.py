@@ -3,6 +3,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+
 from app.security.deps import get_current_user, require_roles, get_db
 from app.models.items import Item
 from app.schemas.items import ItemCreate, ItemUpdate, ItemOut, ItemListResponse
@@ -28,6 +29,20 @@ def _get_item_or_404(db: Session, item_id: int) -> Item:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
     return item
 
+def _to_item_out(item: Item) -> ItemOut:
+    """
+    Canonical serializer for Item → ItemOut, including computed fields.
+    """
+    return ItemOut(
+        id=item.id,
+        name=item.name,
+        base_unit=item.base_unit,
+        par_level=item.par_level,
+        is_active=item.is_active,
+        current_qty=item.current_qty,  # requires Commit 14 model/migration
+        is_below_par=(item.current_qty < item.par_level) if item.par_level is not None else None,
+    )
+
 # ----- routes ----------------------------------------------------------------
 
 @router.post(
@@ -47,13 +62,15 @@ def create_item(payload: ItemCreate, db: Session = Depends(get_db)) -> ItemOut:
     item = Item(
         name=payload.name.strip(),
         base_unit=payload.base_unit,
-        par_level=payload.par_level,
+        par_level=payload.par_level or 0,
         is_active=True,
+        # current_qty is defaulted at DB level; setting explicitly is fine too:
+        # current_qty=0,
     )
     db.add(item)
     db.commit()
     db.refresh(item)
-    return item
+    return _to_item_out(item)
 
 @router.get("", response_model=ItemListResponse)
 def list_items(
@@ -77,7 +94,12 @@ def list_items(
     total = query.count()
     rows = query.order_by(func.lower(Item.name)).limit(limit).offset(offset).all()
 
-    return ItemListResponse(items=rows, total=total, limit=limit, offset=offset)
+    return ItemListResponse(
+        items=[_to_item_out(i) for i in rows],
+        total=total,
+        limit=limit,
+        offset=offset,
+    )
 
 @router.get("/{item_id}", response_model=ItemOut)
 def get_item(
@@ -89,7 +111,7 @@ def get_item(
     Get a single item by id. Any authenticated user.
     """
     item = _get_item_or_404(db, item_id)
-    return item
+    return _to_item_out(item)
 
 @router.put(
     "/{item_id}",
@@ -125,7 +147,7 @@ def update_item(
 
     db.commit()
     db.refresh(item)
-    return item
+    return _to_item_out(item)
 
 @router.delete(
     "/{item_id}",
@@ -158,21 +180,14 @@ def restore_item(item_id: int, db: Session = Depends(get_db)) -> ItemOut:
         item.is_active = True
         db.commit()
         db.refresh(item)
-    return item
-
+    return _to_item_out(item)
 
 # HARD DELETE (admin only): permanently remove an item if it has no history.
-from app.security.deps import require_roles
-from fastapi import HTTPException, status
-
-# If you already have Count model/tables, import it for the safeguard:
 try:
     from app.models.counts import Count  # noqa: F401
     HAS_COUNTS = True
 except Exception:
-    # If counts model/table isn't present yet, skip the reference check gracefully.
     HAS_COUNTS = False
-
 
 @router.delete(
     "/{item_id}/hard",
@@ -191,9 +206,7 @@ def hard_delete_item(
     """
     item = _get_item_or_404(db, item_id)
 
-    # Safeguard: block hard delete if there is historical data
     if HAS_COUNTS:
-        # Check quickly if any count rows reference this item
         exists = db.query(Count).filter(Count.item_id == item.id).first() is not None
         if exists:
             raise HTTPException(
@@ -201,7 +214,6 @@ def hard_delete_item(
                 detail="Cannot hard-delete: item has historical counts. Use soft delete instead.",
             )
 
-    # Safe to remove permanently
     db.delete(item)
     db.commit()
     # 204 No Content

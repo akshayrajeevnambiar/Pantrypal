@@ -19,3 +19,6 @@ class Item(Base):
 
     # Hide without deleting (keeps history intact)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    # NEW: live on-hand quantity (in base_unit)
+    current_qty: Mapped[int] = mapped_column(Integer, nullable=False, default=0)

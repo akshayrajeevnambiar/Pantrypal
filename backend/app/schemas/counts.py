@@ -26,6 +26,7 @@ class CountOut(BaseModel):
     approved_by_id: Optional[int] = None
     approved_by_name: Optional[str] = None
     approved_at: Optional[datetime] = None
+    approved_count: Optional[int] = None
 
 
 class PendingListResponse(BaseModel):

@@ -40,3 +40,6 @@ class Count(Base):
     item = relationship("Item", backref="count_rows")
     submitter = relationship("User", foreign_keys=[submitted_by], backref="submitted_counts")
     approver = relationship("User", foreign_keys=[approved_by], backref="approved_counts")
+
+    # NEW: store what value was approved at that moment
+    approved_count: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
