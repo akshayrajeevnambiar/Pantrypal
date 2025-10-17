@@ -1,4 +1,4 @@
-# backend/app/models/item.py
+# backend/app/models/items.py
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import String, Integer, Boolean
 from app.core.orm import Base

@@ -8,7 +8,9 @@ BaseUnit = Literal["g", "ml", "pcs"]
 class ItemBase(BaseModel):
     name: str = Field(min_length=1, max_length=120)
     base_unit: BaseUnit
-    par_level: int = Field(ge=0)
+    par_level: Optional[int] = None
+    is_active: bool = True
+
 
 class ItemCreate(ItemBase):
     """
@@ -17,9 +19,6 @@ class ItemCreate(ItemBase):
     pass
 
 class ItemUpdate(BaseModel):
-    """
-    Partial update; all fields optional.
-    """
     name: Optional[str] = Field(default=None, min_length=1, max_length=120)
     base_unit: Optional[BaseUnit] = None
     par_level: Optional[int] = Field(default=None, ge=0)
@@ -31,9 +30,11 @@ class ItemOut(BaseModel):
     base_unit: BaseUnit
     par_level: int
     is_active: bool
+    current_count: Optional[int] = None
+    is_below_par: Optional[bool] = None
 
     class Config:
-        from_attributes = True  # allow returning SQLAlchemy models directly
+        from_attributes = True  
 
 class ItemListResponse(BaseModel):
     items: List[ItemOut]

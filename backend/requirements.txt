@@ -1,0 +1,19 @@
+# Core Framework
+fastapi==0.119.0
+uvicorn[standard]==0.37.0
+
+# Database & ORM
+SQLAlchemy==2.0.44
+psycopg[binary]==3.2.10
+alembic==1.17.0
+
+# Security / Auth
+python-jose==3.5.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.0.1
+
+# Data Validation / Utils
+pydantic==2.7.1
+python-dotenv==1.0.1
+email-validator==2.2.0
+pydantic[email]==2.7.1

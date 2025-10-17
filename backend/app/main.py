@@ -4,6 +4,8 @@ from app.core.db import engine
 from app.routers import auth as auth_router
 from app.routers import items as items_router
 from app.routers import counts as counts_router
+from app.routers import counts as counts_router
+
 
 app = FastAPI(title="Pantrypal API", version="0.1.0")
 

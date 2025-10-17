@@ -1,10 +1,4 @@
-"""
-Seed initial users into the database for PantryPal MVP.
-- admin: full access
-- manager: mid-level access
-- counter: read/update counts only
-"""
-
+# app/seed_users.py
 from sqlalchemy.orm import Session
 from app.core.orm import SessionLocal, Base
 from app.models.users import User

@@ -1,3 +1,4 @@
+# app/security/passwords.py
 from passlib.context import CryptContext
 
 _pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
