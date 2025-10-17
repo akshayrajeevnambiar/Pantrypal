@@ -4,7 +4,7 @@ from app.core.db import engine
 from app.routers import auth as auth_router
 from app.routers import items as items_router
 from app.routers import counts as counts_router
-from app.routers import counts as counts_router
+from app.routers import counts as dashboard_router
 
 
 app = FastAPI(title="Pantrypal API", version="0.1.0")
@@ -26,3 +26,4 @@ def read_health():
 app.include_router(auth_router.router)
 app.include_router(items_router.router)
 app.include_router(counts_router.router)
+app.include_router(dashboard_router.router)
