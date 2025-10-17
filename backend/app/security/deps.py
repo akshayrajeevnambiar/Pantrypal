@@ -56,7 +56,7 @@ def get_current_user(
         )
 
     # Load user from DB and ensure active
-    user = db.query(User).get(int(user_id))
+    user = db.get(User, int(user_id))
     if not user or not user.is_active:
         # Don't leak which part failed (treat as unauthorized)
         raise HTTPException(
