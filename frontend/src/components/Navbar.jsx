@@ -25,7 +25,7 @@ export default function Navbar({ user, setUser }) {
           {(role === "manager" || role === "admin") && (
             <Link to="/approvals">Approvals</Link>
           )}
-          <Link to="/billing">Billing</Link>
+          {role === "manager" && <Link to="/billing">Billing</Link>}
           <span className="user">
             {user.email} ({role})
           </span>
