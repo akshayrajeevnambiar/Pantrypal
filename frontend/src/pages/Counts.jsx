@@ -10,19 +10,16 @@ export default function Counts() {
 
   async function load() {
     try {
+      // Items to pick from (active only)
       const list = await api("/items", {
         query: { active: true, limit: 100, offset: 0 },
       });
       setItems(list.items || []);
-      const counts = await api("/counts", {
-        query: {
-          mine: true,
-          status_filter: statusFilter || undefined,
-          limit: 50,
-          offset: 0,
-        },
+      // My submissions come from /dash/my-submissions (NOT /counts)
+      const mineRes = await api("/dash/my-submissions", {
+        query: { status_filter: statusFilter || undefined },
       });
-      setMine(counts.items || counts || []);
+      setMine(Array.isArray(mineRes) ? mineRes : mineRes.items || []);
       setError("");
     } catch (e) {
       setError(e.message);
@@ -48,7 +45,9 @@ export default function Counts() {
       });
       await load();
     } catch (e) {
-      alert(e.message);
+      if (String(e.message).includes("403"))
+        alert("Insufficient privileges to submit counts.");
+      else alert(e.message);
     } finally {
       setBusy(false);
     }

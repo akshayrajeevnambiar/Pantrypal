@@ -39,12 +39,19 @@ export async function api(
   }
 
   if (!res.ok) {
-    let msg = `HTTP ${res.status}`;
-    try {
-      const err = await res.json();
-      msg = err.detail || err.message || msg;
-    } catch {}
-    throw new Error(msg);
+    const text = await res
+      .clone()
+      .text()
+      .catch(() => "");
+    console.error(
+      "[API ERROR]",
+      method,
+      url,
+      res.status,
+      res.statusText,
+      "\n",
+      text
+    );
   }
 
   try {

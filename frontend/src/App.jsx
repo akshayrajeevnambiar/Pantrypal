@@ -8,7 +8,6 @@ import Dashboard from "./pages/Dashboard";
 import Items from "./pages/Items";
 import Counts from "./pages/Counts";
 import Approvals from "./pages/Approvals";
-import Billing from "./pages/Billing";
 import { whoami } from "./lib/auth";
 import { setToken } from "./lib/api";
 
@@ -47,11 +46,12 @@ export default function App() {
             user ? <Navigate to="/dashboard" /> : <Login setUser={setUser} />
           }
         />
+        // ...
         <Route
           path="/dashboard"
           element={
             <Protected user={user}>
-              <Dashboard />
+              <Dashboard user={user} />
             </Protected>
           }
         />
@@ -59,7 +59,7 @@ export default function App() {
           path="/items"
           element={
             <Protected user={user}>
-              <Items />
+              <Items user={user} />
             </Protected>
           }
         />
@@ -80,14 +80,11 @@ export default function App() {
           }
         />
         <Route
-          path="/billing"
+          path="*"
           element={
-            <Protected user={user}>
-              <Billing user={user} onStatusChange={refreshUser} />
-            </Protected>
+            user ? <Navigate to="/dashboard" /> : <Navigate to="/login" />
           }
         />
-        <Route path="*" element={<div>Not found</div>} />
       </Routes>
     </div>
   );

@@ -6,7 +6,8 @@ from app.core.db import engine
 from app.routers import auth as auth_router
 from app.routers import items as items_router
 from app.routers import counts as counts_router
-from app.routers import dashboard as dashboard_router  # if you added commit 15
+from app.routers import dashboard as dashboard_router
+from app.routers import counts_approvals as counts_approvals_router
 import os
 
 app = FastAPI(title="Pantrypal API", version="0.1.0")
@@ -40,3 +41,4 @@ app.include_router(auth_router.router)
 app.include_router(items_router.router)
 app.include_router(counts_router.router)
 app.include_router(dashboard_router.router)
+app.include_router(counts_approvals_router.router)

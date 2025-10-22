@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../lib/api";
 
-export default function Items() {
+export default function Items({ user }) {
+  const canWrite = user?.role === "manager" || user?.role === "admin";
+
   const [items, setItems] = useState([]);
   const [q, setQ] = useState("");
   const [activeOnly, setActiveOnly] = useState(true);
@@ -28,12 +30,13 @@ export default function Items() {
     }
   }
   useEffect(() => {
-    load(); /* initial */
+    load();
   }, []);
 
   const list = useMemo(() => items, [items]);
 
   async function addItem() {
+    if (!canWrite) return alert("Insufficient privileges");
     const name = prompt("Item name?");
     if (!name) return;
     const base_unit = prompt("Base unit? (g/ml/pcs)", "pcs") || "pcs";
@@ -50,6 +53,7 @@ export default function Items() {
   }
 
   async function updatePar(it, v) {
+    if (!canWrite) return alert("Insufficient privileges");
     try {
       const updated = await api(`/items/${it.id}`, {
         method: "PUT",
@@ -62,6 +66,7 @@ export default function Items() {
   }
 
   async function softDelete(it) {
+    if (!canWrite) return alert("Insufficient privileges");
     if (!confirm(`Soft delete "${it.name}"?`)) return;
     try {
       await api(`/items/${it.id}`, { method: "DELETE" });
@@ -76,6 +81,7 @@ export default function Items() {
   }
 
   async function restore(it) {
+    if (!canWrite) return alert("Insufficient privileges");
     try {
       const restored = await api(`/items/${it.id}/restore`, { method: "POST" });
       setItems((s) => s.map((x) => (x.id === restored.id ? restored : x)));
@@ -103,7 +109,7 @@ export default function Items() {
         <button className="primary" onClick={load}>
           Search
         </button>
-        <button onClick={addItem}>Add Item</button>
+        {canWrite && <button onClick={addItem}>Add Item</button>}
       </div>
       {error && <div className="error">{error}</div>}
       {loading ? (
@@ -126,22 +132,27 @@ export default function Items() {
                 <td>{it.name}</td>
                 <td>{it.base_unit}</td>
                 <td>
-                  <input
-                    type="number"
-                    value={it.par_level}
-                    onChange={(e) => updatePar(it, e.target.value)}
-                  />
+                  {canWrite ? (
+                    <input
+                      type="number"
+                      value={it.par_level}
+                      onChange={(e) => updatePar(it, e.target.value)}
+                    />
+                  ) : (
+                    <span>{it.par_level}</span>
+                  )}
                 </td>
                 <td>{it.current_qty}</td>
                 <td>
                   {it.is_active ? (it.is_below_par ? "LOW" : "OK") : "INACTIVE"}
                 </td>
                 <td>
-                  {it.is_active ? (
-                    <button onClick={() => softDelete(it)}>Delete</button>
-                  ) : (
-                    <button onClick={() => restore(it)}>Restore</button>
-                  )}
+                  {canWrite &&
+                    (it.is_active ? (
+                      <button onClick={() => softDelete(it)}>Delete</button>
+                    ) : (
+                      <button onClick={() => restore(it)}>Restore</button>
+                    ))}
                 </td>
               </tr>
             ))}
