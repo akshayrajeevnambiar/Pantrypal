@@ -2,12 +2,16 @@
 __pycache__/
 *.pyc
 .venv/
-.env
+.venv*/
+.pytest_cache/
+.alembic/
 
 # Node
 node_modules/
-.next/
 dist/
+pnpm-lock.yaml
+yarn.lock
+.DS_Store
 
 # OS/Editor
 .DS_Store
@@ -17,3 +21,9 @@ Thumbs.db
 
 # Docker
 *.log
+
+# Env
+.env
+*.env
+frontend/.env
+backend/.env

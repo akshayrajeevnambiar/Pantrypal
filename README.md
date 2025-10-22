@@ -1,3 +1,16 @@
+# PantryPal (MVP)
+
+Monorepo with:
+- `frontend/` — React (Vite)
+- `backend/` — FastAPI + PostgreSQL + SQLAlchemy + JWT
+
+## Quick start
+Frontend:
+- env: `frontend/.env` with `VITE_API_BASE` and `VITE_STRIPE_PK`
+
+Backend:
+- env: `backend/.env` with `FRONTEND_URL`, `STRIPE_*`, DB creds
+
 # PantryPal API (FastAPI)
 
 Inventory + daily count workflow with approvals.
